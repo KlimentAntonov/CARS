@@ -1,0 +1,77 @@
+package com.company;
+
+import java.io.*;
+import java.util.*;
+
+
+class Car {
+    String VIN;
+    String regNumber;
+    int year;
+    String dateOfInsurance;
+    String ownerFirstName;
+    String ownerLastName;
+
+    public Car(String VIN, String regNumber, int year, String dateOfInsurance, String ownerFirstName, String ownerLastName) {
+        this.VIN = VIN;
+        this.regNumber = regNumber;
+        this.year = year;
+        this.dateOfInsurance = dateOfInsurance;
+        this.ownerFirstName = ownerFirstName;
+        this.ownerLastName = ownerLastName;
+    }
+
+    @Override
+    public String toString() {
+        return VIN + " " + regNumber + " " + year + " " + dateOfInsurance + " " + ownerFirstName + " " + ownerLastName;
+    }
+}
+
+
+public class Main {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("testdata.txt"));
+            String line;
+            HashMap<String, ArrayList<Car>> carsMap = new HashMap<>();
+
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\s+");
+                Car car = new Car(parts[0], parts[1], Integer.parseInt(parts[2]), parts[3], parts[4], parts[5]);
+
+                if (!carsMap.containsKey(car.VIN)) {
+                    carsMap.put(car.VIN, new ArrayList<Car>());
+                }
+                carsMap.get(car.VIN).add(car);
+            }
+            reader.close();
+
+            List<Map.Entry<String, ArrayList<Car>>> sortedCars = new ArrayList<>(carsMap.entrySet());
+            sortedCars.sort((a, b) -> Integer.compare(b.getValue().size(), a.getValue().size()));
+
+            sortedCars = sortedCars.subList(0, Math.min(5, sortedCars.size()));
+
+            for (Map.Entry<String, ArrayList<Car>> entry : sortedCars) {
+                entry.getValue().sort((a, b) -> {
+                    if (a.ownerFirstName.equals(b.ownerFirstName)) {
+                        return b.dateOfInsurance.compareTo(a.dateOfInsurance);
+                    } else {
+                        return a.ownerFirstName.compareTo(b.ownerFirstName);
+                    }
+                });
+            }
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
+            int index = 1;
+            for (Map.Entry<String, ArrayList<Car>> entry : sortedCars) {
+                writer.write(index + ". " + entry.getKey() + " " + entry.getValue().size() + " owners " + entry.getValue().size() + " insurances\n");
+                index++;
+            }
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
